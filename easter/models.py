@@ -62,14 +62,23 @@ class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
 
   record_time_fields = ['clip', 'board', 'clip__board']
   record_total_fields = ['total', {'origin': {'0': 'ipad', '1': 'web', '2': 'iphone'}}]
-  unique_fields = ['slug', 'date']
-  fields_to_db = ['slug']
+  unique_fields = ['date']
+  fields_to_db = []
   event_pull_fields = ['text']
   indexes = [(dict.fromkeys(unique_fields, 1), {'unique': True}), ]
+  alias = {'clip': 'c', 'board': 'b', 'total': 't', 'iphone': 'i'}
 
-  def __init__(self, uid, cls_dict={}, **kwargs):
+  def __init__(self, collection_name, uid, cls_dict={}, **kwargs):
+    self.__class__.collection_name = collection_name
     self.uid = uid
-    date = py_time.now().date()
+    datetime = kwargs.pop('datetime', '')
+    if not datetime:
+      datetime = py_time.now()
+    else:
+      datetime = py_time.strptime(datetime, '%Y-%m-%d %H:%M:%S')
+
+    self.datetime = datetime
+    date = self.datetime.date()
     self.date = py_time(year=date.year, month=date.month, day=date.day)
     kwargs.pop('uid', '')
     kwargs.pop('date', '')
@@ -100,10 +109,10 @@ class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
     return unique_dict
 
   def time_record_fields(self):
-    return StatTemplateInterpreter.parse(self, self.record_time_fields)
+    return StatTemplateInterpreter.parse(self, self.record_time_fields, alias=self.alias)
 
   def total_record_fields(self):
-    return StatTemplateInterpreter.parse(self, self.record_total_fields)
+    return StatTemplateInterpreter.parse(self, self.record_total_fields, alias=self.alias)
 
   def pushable_fields(self):
     return self.event_pull_fields
@@ -123,7 +132,7 @@ class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
       value = getattr(self, field, '')
       pull_data.update({field: value})
 
-    pull_data.update({'datetime': py_time.now() if not hasattr(self, 'datetime') else self.datetime})
+    pull_data.update({'datetime': self.datetime})
     u = UserEventFalls(uid=self.uid, **pull_data)
     u.record()
 
@@ -131,7 +140,6 @@ class UserHashTable(Mongoable):
   app_name = 'easter'
   collection_name = 'user_hash'
   indexes = [({'user_hash': 1}, {'unique': True})]
-
 
   class MD5Hash:
     def hexdigest(self, info):
@@ -182,7 +190,7 @@ class RegisteredEvents(Mongoable):
 
   def __init__(self, event_app, event_collection, time_stat=[],
                total_stat=[], event_unique=[], event_fields_to_db=[],
-               event_fields_to_feeds=[], event_indexes=[]):
+               event_fields_to_feeds=[], event_indexes=[], event_alias={}):
     self.event_app = event_app
     self.event_collection = event_collection
     self.time_stat = time_stat
@@ -191,6 +199,7 @@ class RegisteredEvents(Mongoable):
     self.event_fields_to_db = event_fields_to_db
     self.event_fields_to_feeds = event_fields_to_feeds
     self.event_indexes = event_indexes
+    self.event_alias = event_alias
 
   @classmethod
   def get_by_name(cls, event_app, event_collection):
@@ -212,6 +221,7 @@ class RegisteredEvents(Mongoable):
     fields_to_db = json_data.get('event_fields_to_db', [])
     event_pull_fields = json_data.get('event_fields_to_feeds', [])
     indexes = json_data.get('event_indexes', [])
+    alias = json_data.get('event_alias', {})
 
     return {
       'app_name': app_name,
@@ -221,5 +231,6 @@ class RegisteredEvents(Mongoable):
       'unique_fields': unique_fields,
       'fields_to_db': fields_to_db,
       'event_pull_fields': event_pull_fields,
-      'indexes': indexes
+      'indexes': indexes,
+      'alias': alias
     }

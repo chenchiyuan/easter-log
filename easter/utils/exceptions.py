@@ -3,11 +3,6 @@
 
 from __future__ import division, unicode_literals, print_function
 
-# -*- coding: utf-8 -*-
-# __author__ = chenchiyuan
-
-from __future__ import division, unicode_literals, print_function
-
 class NotExistsException(Exception):
   def __init__(self, name):
     self.name = name
@@ -29,6 +24,26 @@ class MongoDBHandleException(Exception):
     return self.handle
 
 class NothingException(Exception):
+  def __init__(self, name):
+    self.name = name
+
+  def __repr__(self):
+    return self.name
+
+  def __str__(self):
+    return self.name
+
+class SignitureException(Exception):
+  def __init__(self, name):
+    self.name = name
+
+  def __repr__(self):
+    return self.name
+
+  def __str__(self):
+    return self.name
+
+class InfoIllegalException(Exception):
   def __init__(self, name):
     self.name = name
 

@@ -92,7 +92,7 @@ class Mongoable:
 
     else:
       if not json_data:
-        raise NotExistsException("mongodb query %s" %query)
+        raise NotExistsException("Not Exists mongodb query %s" %query)
   
       if json_data.has_key('_id'):
         del json_data['_id']

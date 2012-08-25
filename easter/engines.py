@@ -3,44 +3,53 @@
 
 from __future__ import division, unicode_literals, print_function
 from models import UserHashTable, EventHandler, RegisteredEvents
+from utils.exceptions import InfoIllegalException, SignitureException
 
+import json
 import logging
 
-logger = logging.getLogger(__name__ )
+logger = logging.getLogger(__name__)
 
 class MainEngine(object):
-  def execute(self, db_info, user_info, events=[]):
-    app_name = db_info.get('app_name', '')
-    collection_name = db_info.get('collection_name', '')
-
+  def execute(self, sig, app_name, user_info, events=[]):
+    json_data = {
+      'app_name': app_name,
+      'user_info': user_info,
+      'events': events
+      }
     try:
-      cls_info = RegisteredEvents.get_by_name(app_name, collection_name)
+      validate = self.verify(sig, json.dumps(json_data))
     except Exception, err:
       logger.info(err)
-      return
+      raise InfoIllegalException("参数不合法")
 
-    self.do_events(cls_info, user_info, events)
+    if not validate:
+      raise SignitureException("签名验证失败")
 
-  def do_events(self, cls_info, user_info, events=[]):
     try:
-      uid = self.authentication(user_info)
+      self.do_events(app_name, user_info, events)
     except Exception, err:
       logger.info(err)
-      return
+      raise InfoIllegalException("参数不合法")
+
+  def do_events(self, app_name, user_info, events=[]):
+    uid = self.authentication(user_info)
 
     for event in events:
+      collection_name = event.get('collection_name', '')
+      cls_info = RegisteredEvents.get_by_name(app_name, collection_name)
       self.do_event(cls_info=cls_info, uid=uid, event=event)
 
   def do_event(self, uid, cls_info, event):
     handler = EventHandler(uid=uid, cls_dict=cls_info, **event)
-    try:
-      handler.record()
-    except Exception, err:
-      logger.info(err)
-      return
-    
-  def verify(self, **kwargs):
-    pass
+    handler.record()
+
+  def verify(self, sig, info):
+    import md5
+    m = md5.new(info)
+    print(sig)
+    print(m.hexdigest())
+    return sig == m.hexdigest()
 
   def authentication(self, user_info):
     cookie = user_info['cookie']

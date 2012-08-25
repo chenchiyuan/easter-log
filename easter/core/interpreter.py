@@ -3,13 +3,18 @@
 
 from __future__ import division, unicode_literals, print_function
 
-def keys_format(**kwargs):
+def keys_format(alias={}, **kwargs):
   sorted_items = sorted(kwargs.iteritems(), key=lambda x: x[1])
   items = []
   for key, value in sorted_items:
     if not value:
+      if alias.has_key(key):
+        key = alias[key]
       items.append(key)
+
     else:
+      if alias.has_key(key):
+        key = alias[key]
       items.append(key + '_' + str(value))
   return '#'.join(items)
 
@@ -18,16 +23,18 @@ class StatTemplateInterpreter(object):
   这里应该通过给出的模板，分析出记录的可以的形式。而具体的记录行为，应该不管
   """
   @classmethod
-  def parse(cls, instance, field_list):
+  def parse(cls, instance, field_list, alias={}):
     d = []
     for item in field_list:
       if isinstance(item, dict):
         for key in item:
           field = cls.do_condition_filter(instance, key, item[key])
+          if alias.has_key(field):
+            field = alias[field]
           d.append(field)
       else:
         key_dict = cls.do_key_explain(instance, item)
-        d.append(keys_format(**key_dict))
+        d.append(keys_format(alias=alias, **key_dict))
     return list(set(d))
 
   @classmethod
