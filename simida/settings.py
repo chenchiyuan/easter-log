@@ -3,6 +3,8 @@ import os
 
 # DIRS
 PROJECT_HOME = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../')
+# TRUST_IPS
+TRUST_IPS = [u'127.0.0.1',]
 
 #MONGO_DB
 MONGO_HOST = 'localhost'
@@ -10,6 +12,11 @@ MONGO_PORT = 27017
 
 # RESITER_APPS
 REGISTER_APPS = ['easter', 'cayman']
+
+# DAYS_OR_HOURS
+ONE_HOUR = 3600
+ONE_DAY = ONE_HOUR*24
+TIME_THRESHOLD = ONE_DAY*3
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -38,24 +45,24 @@ DATABASES = {
 # timezone as the operating system.
 # If running in a Windows environment this must be set to the same as your
 # system time zone.
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Asia/Shanghai'
 
 # Language code for this installation. All choices can be found here:
 # http://www.i18nguy.com/unicode/language-identifiers.html
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-cn'
 
 SITE_ID = 1
 
 # If you set this to False, Django will make some optimizations so as not
 # to load the internationalization machinery.
-USE_I18N = True
+USE_I18N = False
 
 # If you set this to False, Django will not format dates, numbers and
 # calendars according to the current locale.
-USE_L10N = True
+USE_L10N = False
 
 # If you set this to False, Django will not use timezone-aware datetimes.
-USE_TZ = True
+USE_TZ = False
 
 # Absolute filesystem path to the directory that will hold user-uploaded files.
 # Example: "/home/media/media.lawrence.com/media/"
@@ -95,7 +102,7 @@ STATICFILES_FINDERS = (
 SECRET_KEY = 'bl75r1wvdo9ykqb+k-ks8)(js6dgz^$kbmfiqhx271^el5#pw4'
 
 # List of callables that know how to import templates from various sources.
-TEMPLATE_LOADERS = (
+TEMPpassLATE_LOADERS = (
     'django.template.loaders.filesystem.Loader',
     'django.template.loaders.app_directories.Loader',
 #     'django.template.loaders.eggs.Loader',
@@ -151,7 +158,7 @@ LOGGING = {
       'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
     },
       'simple': {
-      'format': '%(levelname)s %(asctime)s %(module)s %(message)s'
+      'format': '%(levelname)s %(asctime)s %(module)s %(lineno)d %(message)s '
     },
   },
   'handlers': {

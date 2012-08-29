@@ -8,47 +8,47 @@ class NotExistsException(Exception):
     self.name = name
 
   def __repr__(self):
-    return self.name
+    return self.__str__()
 
   def __str__(self):
-    return self.name
+    return self.name.encode('utf-8')
 
 class MongoDBHandleException(Exception):
   def __init__(self, handle):
     self.handle = handle
 
   def __repr__(self):
-    return self.handle
+    return self.__str__()
 
   def __str__(self):
-    return self.handle
+    return self.handle.encode('utf-8')
 
 class NothingException(Exception):
   def __init__(self, name):
     self.name = name
 
   def __repr__(self):
-    return self.name
+    return self.__str__()
 
   def __str__(self):
-    return self.name
+    return self.name.encode('utf-8')
 
 class SignitureException(Exception):
   def __init__(self, name):
     self.name = name
 
   def __repr__(self):
-    return self.name
+    return self.__str__()
 
   def __str__(self):
-    return self.name
+    return self.name.encode('utf-8')
 
 class InfoIllegalException(Exception):
   def __init__(self, name):
     self.name = name
 
   def __repr__(self):
-    return self.name
+    return self.__str__()
 
   def __str__(self):
-    return self.name
+    return self.name.encode('utf-8')

@@ -2,23 +2,29 @@
 # __author__ = chenchiyuan
 
 from __future__ import division, unicode_literals, print_function
-from models import UserHashTable, EventHandler, RegisteredEvents
+from collections import UserHashTable, EventHandler, RegisteredEvents, UserEventFalls
 from utils.exceptions import InfoIllegalException, SignitureException
+from easter.core.interpreter import QueryInterpreter
+from core.verification import Verification
+from datetime import datetime as py_time
+from utils.util import datetime_to_str
 
 import json
 import logging
 
 logger = logging.getLogger(__name__)
 
-class MainEngine(object):
+class EventPostEngine(object):
   def execute(self, sig, app_name, user_info, events=[]):
     json_data = {
       'app_name': app_name,
       'user_info': user_info,
       'events': events
       }
+    v = Verification()
+
     try:
-      validate = self.verify(sig, json.dumps(json_data))
+      validate = all([v.verify_info(sig, json.dumps(json_data)),])
     except Exception, err:
       logger.info(err)
       raise InfoIllegalException("参数不合法")
@@ -44,13 +50,6 @@ class MainEngine(object):
     handler = EventHandler(uid=uid, cls_dict=cls_info, **event)
     handler.record()
 
-  def verify(self, sig, info):
-    import md5
-    m = md5.new(info)
-    print(sig)
-    print(m.hexdigest())
-    return sig == m.hexdigest()
-
   def authentication(self, user_info):
     cookie = user_info['cookie']
     uid = user_info.get('uid', '')
@@ -67,3 +66,63 @@ class MainEngine(object):
       u_hash.uid = user_id
 
     return u_hash.get_uid()
+
+class QueryGetEngine(object):
+  def execute(self, ip, app_name, query, fields, **kwargs):
+    v = Verification()
+    try:
+      validate = all([v.verify_ip(ip), ])
+    except Exception, err:
+      logger.info(err)
+      raise InfoIllegalException("参数不合法")
+
+    if not validate:
+      raise SignitureException("签名验证失败")
+
+    try:
+      info = self.do_query(app_name, query, fields, **kwargs)
+    except Exception, err:
+      logger.info(err)
+      raise InfoIllegalException("参数不合法")
+    else:
+      return info
+
+  def do_query(self, app_name, query, fields, **kwargs):
+    collection_name = query.pop('collection_name', '')
+    from_datetime = query.pop('from_datetime', '')
+    to_datetime = query.pop('to_datetime', '')
+
+    cls_info = RegisteredEvents.get_by_name(app_name, collection_name)
+
+    alias = cls_info['alias']
+    key_fields = QueryInterpreter.parse(fields, alias)
+
+    info = EventHandler.mget(from_datetime=from_datetime,
+                             to_datetime=to_datetime, fields=key_fields)
+    return info
+
+class UserEventsEngine(object):
+  def execute(self, ip, uid=None, from_datetime=py_time.now(), to_datetime=py_time.now()):
+    v = Verification()
+    try:
+      validate = all([v.verify_ip(ip), ])
+    except Exception, err:
+      logger.info(err)
+      raise InfoIllegalException("参数不合法")
+
+    if not validate:
+      raise SignitureException("签名验证失败")
+
+    try:
+      info = self.do_query(uid, from_datetime, to_datetime)
+    except Exception, err:
+      logger.info(err)
+      raise InfoIllegalException("参数不合法")
+    else:
+      return info
+
+  def do_query(self, uid=None, from_datetime=py_time.now(), to_datetime=py_time.now()):
+    info = UserEventFalls.get(uid, from_datetime, to_datetime)
+    for item in info:
+      item['datetime'] = datetime_to_str(item['datetime'])
+    return info

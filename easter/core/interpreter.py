@@ -67,5 +67,16 @@ class StatTemplateInterpreter(object):
     return value
 
 class QueryInterpreter(object):
-  pass
+  @classmethod
+  def parse(cls, field_list, alias={}):
+    key_lists = []
+    for field in field_list:
+      if isinstance(field, dict):
+        key_lists.append(keys_format(alias=alias, **field))
+      else:
+        key_lists.append(keys_format(alias=alias, **{field: None}))
+    return key_lists
+
+  
+
 

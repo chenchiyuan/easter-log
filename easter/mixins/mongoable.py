@@ -107,12 +107,17 @@ class Mongoable:
       if not restrict:
         clusters = collection.find(query)
       else:
+        restrict.update(dict.fromkeys(cls.unique_fields, 1))
         clusters = collection.find(query, restrict)
     except Exception, err:
       logger.info(err)
       raise MongoDBHandleException("On Cls Get by Query")
 
     else:
+      clusters = list(clusters)
+      for cluster in clusters:
+        if cluster.has_key('_id'):
+          del cluster['_id']
       return clusters
 
   @classmethod
