@@ -6,6 +6,19 @@ from easter.mixins.mongoable import Mongoable
 from easter.utils.exceptions import NotExistsException
 
 class RegisteredEvents(Mongoable):
+  '''
+    注册的事件表。app_name和collection_name作为唯一字段。
+    可以指定的字段：
+    1. event_app app的名字
+    2. event_collection collection的名字
+    3. time_stat 记录时间的字段。可以申明为组合。比如clip__board
+    4. total_stat 需要统计的字段，可以给条件选取。比如{origin: {1: web, 2: app}} 当origin为1时是web
+    5. event_unique 唯一字段表
+    6. event_fields_to_db 需要记录到event表中的字段，默认记录unique，date
+    7. event_fields_to_feeds 需要push到user_events中的字段。默认推送时间和名字
+    8. event_indexes. 指定的indexes，默认将unique作为indexes
+    9. event_alias 记录的表明，比如{'clip': 'c'} 所有的clip相关的名字用c来指代。
+  '''
   app_name = 'easter'
   collection_name = 'register_events'
 

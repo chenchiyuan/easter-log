@@ -8,6 +8,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 class UserHashTable(Mongoable):
+  """
+  定义了用户hashtable。主要记录用户的cookie和id对应的关系。
+  目的是链接用户登录前后关系。
+  """
   app_name = 'easter'
   collection_name = 'user_hash'
   indexes = [({'user_hash': 1}, {'unique': True})]

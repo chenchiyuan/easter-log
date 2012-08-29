@@ -20,6 +20,13 @@ ONE_HOUR = settings.ONE_HOUR or 3600
 ONE_DAY = settings.ONE_DAY or 3600*24
 
 class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
+  '''
+    module中最关键的一个collection.加入了BaseRecord, TimeStat, TotalStat Mixin。
+    有两个主要作用：
+    1. 基于总计统计某些行为。
+    2. 基于时间轴(以小时为基数)来统计行为。
+    我们采用注册的机制，只有注册的行为才能统计。不然请求会被返回。
+  '''
   app_name = 'cayman'
   collection_name = 'event'
 
@@ -126,27 +133,28 @@ class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
     cursors = cls.get_by_query(query={'date': {'$gte': from_yesterday, '$lt': to_tomorrow}}, only=fields)
     infos = []
 
-    def total_hours(from_datetime, to_datetime):
+    def total_hours(from_datetime, to_datetime): #统计总共需要返回多少个小时
       delta = to_datetime - from_datetime
       return int(delta.total_seconds() / ONE_HOUR)
 
-    for field in fields:
+    for field in fields: #初始化数组，给默认值
       info = {}
       info['total'] = 0
       info["stats"] = [0 for i in range(total_hours(from_datetime, to_datetime))]
       infos.append(info)
 
+    # Fucking!!!Dirty code.
     for cursor in cursors:
       date = cursor['date']
-      for i, field in enumerate(fields):
+      for i, field in enumerate(fields): #迭代每个field
         data = cursor.get(field, 0)
-        if isinstance(data, dict):
+        if isinstance(data, dict): #如果是dict，表明统计的是时间
           for hour in data:
-            d_time = document_datetime(date, hour)
+            d_time = document_datetime(date, hour) #lazy的做法，将小时加上document的date，和请求时间比较
             if not (d_time >= from_datetime and d_time <= to_datetime):
               continue
             infos[i]["total"] += data[hour]
-            which_hour = total_hours(from_datetime, d_time)
+            which_hour = total_hours(from_datetime, d_time) #在返回值的具体位置上设置
             infos[i]["stats"][which_hour] = data[hour]
         else:
           infos[i]["total"] += data

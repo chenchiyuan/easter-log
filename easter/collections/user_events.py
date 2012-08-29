@@ -11,6 +11,9 @@ from easter.utils.util import to_datetime as str_to_datetime
 logger = logging.getLogger(__name__)
 
 class UserEventFalls(BaseRecord):
+  """
+    记录用户时间，以时间为维度。更具uid和时间取出相应的数据.
+  """
   app_name = 'cayman'
   collection_name = 'user_events'
 
@@ -47,7 +50,7 @@ class UserEventFalls(BaseRecord):
     collection = cls.get_collection()
     try:
       collection.update({'uid': from_uid},
-          {'$set': {'uid': to_uid}}, upsert=False, multi=True)
+          {'$set': {'uid': to_uid, 'cookie': from_uid}}, upsert=False, multi=True)
     except Exception, err:
       logger.info(err)
 

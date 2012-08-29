@@ -10,6 +10,14 @@ import logging
 logger = logging.getLogger()
 
 class Mongoable:
+  """
+  自己抽象的mongo ORM Mixin。需要ORM的model可以继承这个类。
+  TODO：BUG 多多。需要修复！！
+  1. 不应该用dict信息。里面有很多不相关的东西。vars(obj)??? 用户自定义???
+  2. 封装得不智能。耦合度太高。主要在query上面
+  3. 如何更人性化的处理id问题。
+  """
+
   @property
   def unique(self):
     raise NotImplemented
