@@ -31,5 +31,3 @@ class TimeStatistics:
       return {}
     
     return {"$inc": update_fields_dict}
-
-    
