@@ -28,18 +28,17 @@ class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
     我们采用注册的机制，只有注册的行为才能统计。不然请求会被返回。
   '''
   app_name = 'cayman'
-  collection_name = 'event'
+  collection_name = 'create_clip'
 
-  record_time_fields = ['clip', 'board', 'clip__board']
-  record_total_fields = ['total', {'origin': {'0': 'ipad', '1': 'web', '2': 'iphone'}}]
+  record_time_fields = []
+  record_total_fields = []
   unique_fields = ['date']
   fields_to_db = []
-  event_pull_fields = ['text',]
+  event_pull_fields = []
   indexes = [(dict.fromkeys(unique_fields, 1), {'unique': True}), ]
-  alias = {'clip': 'c', 'board': 'b', 'total': 't', 'iphone': 'i'}
+  alias = {}
 
-  def __init__(self, collection_name, uid, cls_dict={}, **kwargs):
-    self.__class__.collection_name = collection_name
+  def __init__(self, uid, cls_dict={}, **kwargs):
     self.uid = uid
     datetime = kwargs.pop('datetime', '')
     if not datetime:
@@ -133,6 +132,7 @@ class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
     cursors = cls.get_by_query(query={'date': {'$gte': from_yesterday, '$lt': to_tomorrow}}, only=fields)
     infos = []
 
+    #WARING TODO: 可能出现跨小时问题。
     def total_hours(from_datetime, to_datetime): #统计总共需要返回多少个小时
       delta = to_datetime - from_datetime
       return int(delta.total_seconds() / ONE_HOUR)
@@ -170,7 +170,8 @@ class EventHandler(BaseRecord, TimeStatistics, TotalStatistics):
     cursors = cls.get_by_query(query={'date': {'$gte': from_yesterday, '$lt': to_tomorrow}}, only=fields)
     def total_days(from_datetime, to_datetime):
       delta = to_datetime - from_datetime
-      return int(delta.total_seconds() / ONE_DAY)
+      days = int(delta.total_seconds() / ONE_DAY) if not delta.total_seconds() < 0 else -1
+      return days + 1
 
     infos = []
     for field in fields:

@@ -20,14 +20,14 @@ from easter.collections import RegisteredEvents
 """
 
 app_name = 'cayman'
-collection_name = 'event'
+collection_name = 'create_clip'
 
-record_time_fields = ['clip', 'board', 'clip__board']
+record_time_fields = ['uid__board']
 record_total_fields = ['total', {'origin': {'0': 'ipad', '1': 'web', '2': 'iphone'}}]
 unique_fields = ['date']
 fields_to_db = []
 event_pull_fields = ['text']
-alias = {'board': 'b', 'slug': 's', 'total': 't', 'iphone': 'i'}
+alias = {'board': 'b', 'uid': 'u', 'total': 't', 'iphone': 'i'}
 indexes = [(dict.fromkeys(unique_fields, 1), {'unique': True}), ]
 
 
